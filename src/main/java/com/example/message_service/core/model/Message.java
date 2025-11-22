@@ -1,4 +1,4 @@
-package com.example.message_service;
+package com.example.message_service.core.model;
 
 import jakarta.persistence.*;
 import java.util.Date;
