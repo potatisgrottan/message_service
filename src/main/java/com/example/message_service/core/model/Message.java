@@ -2,17 +2,17 @@ package com.example.message_service.core.model;
 
 import jakarta.persistence.*;
 import java.util.Date;
-import java.util.UUID;
+
 
 @Entity
 public class Message {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private UUID senderId;
-    private UUID receiverId;
+    private String senderId;
+    private String receiverId;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date sentAt;
@@ -23,21 +23,21 @@ public class Message {
         this.sentAt = new Date();
     }
 
-    public Message(UUID senderId, UUID receiverId, String message) {
+    public Message(String senderId, String receiverId, String message) {
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.message = message;
         this.sentAt = new Date();
     }
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public UUID getSenderId() { return senderId; }
-    public void setSenderId(UUID senderId) { this.senderId = senderId; }
+    public String getSenderId() { return senderId; }
+    public void setSenderId(String senderId) { this.senderId = senderId; }
 
-    public UUID getReceiverId() { return receiverId; }
-    public void setReceiverId(UUID receiverId) { this.receiverId = receiverId; }
+    public String getReceiverId() { return receiverId; }
+    public void setReceiverId(String receiverId) { this.receiverId = receiverId; }
 
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }

@@ -9,12 +9,12 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.UUID;
 
-public interface MessageRepository extends JpaRepository<Message, UUID> {
-    List<Message> findAllByReceiverId(UUID receiverId);
-    List<Message> findAllBySenderId(UUID senderId);
+public interface MessageRepository extends JpaRepository<Message, Long> {
+    List<Message> findAllByReceiverId(String receiverId);
+    List<Message> findAllBySenderId(String senderId);
     @Query("SELECT m FROM Message m WHERE" +
             "(m.senderId = :userId AND m.receiverId = :otherId)" +
             "OR (m.senderId = :otherId AND m.receiverId = :userId) ORDER BY m.sentAt")
-    List<Message> findConversation(@Param("userId") UUID userId, @Param("otherId") UUID otherUserId);
+    List<Message> findConversation(@Param("userId") String userId, @Param("otherId") String otherUserId);
 }
 

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
+
 
 @RestController
 @RequestMapping("/api/messages")
@@ -21,7 +21,7 @@ public class MessageController {
     }
 
     @GetMapping("/all/{userId}")
-    public List<Message> getAllForUser(@PathVariable UUID userId) {
+    public List<Message> getAllForUser(@PathVariable String userId) {
         List<Message> sent = messageService.getMessagesSentBy(userId);
         List<Message> received = messageService.getMessagesReceivedBy(userId);
         sent.addAll(received);
@@ -30,8 +30,8 @@ public class MessageController {
     }
 
     @GetMapping("/conversation/{userId}/{otherUserId}")
-    public List<Message> conversation(@PathVariable UUID userId,
-                                      @PathVariable UUID otherUserId) {
+    public List<Message> conversation(@PathVariable String userId,
+                                      @PathVariable String otherUserId) {
         return messageService.getConversation(userId, otherUserId);
     }
 

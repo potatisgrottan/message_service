@@ -5,7 +5,6 @@ import com.example.message_service.db.MessageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -20,19 +19,19 @@ public class MessageService {
         //this.encounterService = encounterService;
     }
 
-    public List<Message> getMessagesSentBy(UUID userId) {
+    public List<Message> getMessagesSentBy(String userId) {
         return messageRepository.findAllBySenderId(userId);
     }
 
-    public List<Message> getMessagesReceivedBy(UUID userId) {
+    public List<Message> getMessagesReceivedBy(String userId) {
         return messageRepository.findAllByReceiverId(userId);
     }
 
-    public List<Message> getConversation(UUID userId, UUID otherUserId) {
+    public List<Message> getConversation(String userId, String otherUserId) {
         return messageRepository.findConversation(userId, otherUserId);
     }
 
-    public Message sendMessage(UUID sender, UUID receiver, String content) {
+    public Message sendMessage(String sender, String receiver, String content) {
         Message message = new Message();
         message.setSenderId(sender);
         message.setReceiverId(receiver);
