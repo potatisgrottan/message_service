@@ -13,8 +13,8 @@ public class MessageService {
     private final MessageRepository messageRepository;
     //private final EncounterService encounterService;
 
-    public MessageService(MessageRepository messageRepository
-                        ) {
+    public MessageService(MessageRepository messageRepository, AuthClient authClient
+    ) {
         this.messageRepository = messageRepository;
         //this.encounterService = encounterService;
     }
