@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    List<Message> findAllByReceiverId(String receiverId);
-    List<Message> findAllBySenderId(String senderId);
+    List<Message> findAllByReceiverEmail(String receiverEmail);
+    List<Message> findAllBySenderEmail(String senderEmail);
     @Query("SELECT m FROM Message m WHERE" +
-            "(m.senderId = :userId AND m.receiverId = :otherId)" +
-            "OR (m.senderId = :otherId AND m.receiverId = :userId) ORDER BY m.sentAt")
-    List<Message> findConversation(@Param("userId") String userId, @Param("otherId") String otherUserId);
+            "(m.senderEmail = :userEmail AND m.receiverEmail= :otherEmail)" +
+            "OR (m.senderEmail = :otherEmail AND m.receiverEmail = :userEmail) ORDER BY m.sentAt")
+    List<Message> findConversation(@Param("userEmail") String userEmail, @Param("otherEmail") String otherUserEmail);
 }
 

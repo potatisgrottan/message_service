@@ -2,6 +2,7 @@ package com.example.message_service.ui;
 
 import com.example.message_service.core.model.Message;
 import com.example.message_service.core.service.AuthClient;
+import com.example.message_service.core.service.AuthService;
 import com.example.message_service.core.service.MessageService;
 import com.example.message_service.ui.DTO.MessageDTO;
 import com.example.message_service.ui.DTO.UserDto;
@@ -16,10 +17,13 @@ import java.util.List;
 public class MessageController {
 
     private final MessageService messageService;
+    private final AuthService authService;
     private final AuthClient authClient;
 
-    public MessageController(MessageService messageService, AuthClient authClient) {
+    public MessageController(MessageService messageService, AuthService authService, AuthClient authClient) {
         this.messageService = messageService;
+
+        this.authService = authService;
         this.authClient = authClient;
     }
 
@@ -32,18 +36,34 @@ public class MessageController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
 
-        List<Message> sent = messageService.getMessagesSentBy(user.id());
-        List<Message> received = messageService.getMessagesReceivedBy(user.id());
+        List<Message> sent = messageService.getMessagesSentBy(user.email());
+        List<Message> received = messageService.getMessagesReceivedBy(user.email());
         sent.addAll(received);
         sent.sort(Comparator.comparing(Message::getSentAt));
 
         return ResponseEntity.ok(sent);
     }
 
-    @GetMapping("/conversation/{otherUserId}")
+    @GetMapping("/users/available-to-message")
+    public ResponseEntity<?> getAvailableUsers(
+            @RequestHeader("Authorization") String authHeader) {
+
+        UserDto current = authClient.validateBasicAuth(authHeader);
+        if (current == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+
+        List<UserDto> users = messageService.getAvailableUsers(current);
+
+        return ResponseEntity.ok(users);
+    }
+
+
+    @GetMapping("/conversation/{otherUserEmail}")
     public ResponseEntity<?> conversation(
             @RequestHeader("Authorization") String authHeader,
-            @PathVariable String otherUserId) {
+            @PathVariable String otherUserEmail) {
 
         UserDto user = authClient.validateBasicAuth(authHeader);
         if (user == null) {
@@ -51,7 +71,7 @@ public class MessageController {
         }
 
         return ResponseEntity.ok(
-                messageService.getConversation(user.id(), otherUserId)
+                messageService.getConversation(user.email(), otherUserEmail)
         );
     }
 
@@ -67,8 +87,8 @@ public class MessageController {
         }
 
         Message saved = messageService.sendMessage(
-                user.id(),
-                dto.receiverId,
+                user.email(),
+                dto.receiverEmail,
                 dto.content
         );
 

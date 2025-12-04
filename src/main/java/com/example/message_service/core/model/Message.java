@@ -11,8 +11,8 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String senderId;
-    private String receiverId;
+    private String senderEmail;
+    private String receiverEmail;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date sentAt;
@@ -23,9 +23,9 @@ public class Message {
         this.sentAt = new Date();
     }
 
-    public Message(String senderId, String receiverId, String message) {
-        this.senderId = senderId;
-        this.receiverId = receiverId;
+    public Message(String senderEmail, String receiverEmail, String message) {
+        this.senderEmail = senderEmail;
+        this.receiverEmail = receiverEmail;
         this.message = message;
         this.sentAt = new Date();
     }
@@ -33,11 +33,11 @@ public class Message {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getSenderId() { return senderId; }
-    public void setSenderId(String senderId) { this.senderId = senderId; }
+    public String getSenderEmail() { return senderEmail; }
+    public void setSenderEmail(String senderEmail) { this.senderEmail = senderEmail; }
 
-    public String getReceiverId() { return receiverId; }
-    public void setReceiverId(String receiverId) { this.receiverId = receiverId; }
+    public String getReceiverEmail() { return receiverEmail; }
+    public void setReceiverEmail(String receiverEmail) { this.receiverEmail = receiverEmail; }
 
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
@@ -51,8 +51,8 @@ public class Message {
     public String toString() {
         return "Message{" +
                 "id=" + id +
-                ", senderId=" + senderId +
-                ", receiverId=" + receiverId +
+                ", senderEmail=" + senderEmail +
+                ", receiverEmail=" + receiverEmail +
                 ", message='" + message + '\'' +
                 ", sentAt=" + sentAt +
                 '}';
