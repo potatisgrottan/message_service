@@ -2,6 +2,7 @@ package com.example.message_service.core.service;
 
 import com.example.message_service.ui.DTO.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -9,43 +10,49 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 @Service
 public class AuthClient {
 
     private final RestTemplate restTemplate;
+
+    @Value("http://auth-service:8081") // Peka på din User Profile Service
+    private String authServiceUrl;
 
     @Autowired
     public AuthClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    public UserDto validateBasicAuth(String basicAuthHeader) {
+    // OBS: validateBasicAuth är BORTTAGEN.
+
+    /**
+     * Hämtar användare baserat på roll från Auth Service.
+     * Vi skickar med token (Bearer) som vi fick från frontend för att bevisa att vi får göra detta.
+     */
+    public List<UserDto> getUsersByRole(String role, String authHeader) {
         try {
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", basicAuthHeader);
+            headers.set("Authorization", authHeader); // Token Relay
 
             HttpEntity<Void> request = new HttpEntity<>(headers);
+            String url = authServiceUrl + "/api/auth/users/role/" + role;
 
-            String url = "http://auth-service:8081/api/auth/validate";
-
-            System.out.println("Calling auth-service with URL: " + url);
-            System.out.println("Headers: " + headers);
-
-            ResponseEntity<UserDto> response = restTemplate.exchange(
+            ResponseEntity<UserDto[]> response = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
                     request,
-                    UserDto.class
+                    UserDto[].class
             );
 
-            System.out.println("Response status: " + response.getStatusCode());
-            System.out.println("Response body: " + response.getBody());
+            return response.getBody() != null ? Arrays.asList(response.getBody()) : Collections.emptyList();
 
-            return response.getBody();
         } catch (Exception e) {
-            System.out.println("Auth validation failed: " + e.getMessage());
-            return null;
+            System.out.println("Failed to fetch users from auth-service: " + e.getMessage());
+            return Collections.emptyList();
         }
     }
-
 }

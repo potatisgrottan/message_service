@@ -1,43 +1,35 @@
 package com.example.message_service.ui;
 
 import com.example.message_service.core.model.Message;
-import com.example.message_service.core.service.AuthClient;
-import com.example.message_service.core.service.AuthService;
 import com.example.message_service.core.service.MessageService;
 import com.example.message_service.ui.DTO.MessageDTO;
 import com.example.message_service.ui.DTO.UserDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
 
     private final MessageService messageService;
-    private final AuthService authService;
-    private final AuthClient authClient;
 
-    public MessageController(MessageService messageService, AuthService authService, AuthClient authClient) {
+    public MessageController(MessageService messageService) {
         this.messageService = messageService;
-
-        this.authService = authService;
-        this.authClient = authClient;
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllForUser(
-            @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<Message>> getAllForUser(@AuthenticationPrincipal Jwt jwt) {
+        // Hämta email direkt från token
+        String email = jwt.getClaimAsString("email");
 
-        UserDto user = authClient.validateBasicAuth(authHeader);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Unauthorized");
-        }
-
-        List<Message> sent = messageService.getMessagesSentBy(user.email());
-        List<Message> received = messageService.getMessagesReceivedBy(user.email());
+        List<Message> sent = messageService.getMessagesSentBy(email);
+        List<Message> received = messageService.getMessagesReceivedBy(email);
         sent.addAll(received);
         sent.sort(Comparator.comparing(Message::getSentAt));
 
@@ -45,49 +37,43 @@ public class MessageController {
     }
 
     @GetMapping("/users/available-to-message")
-    public ResponseEntity<?> getAvailableUsers(
+    public ResponseEntity<List<UserDto>> getAvailableUsers(
+            @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("Authorization") String authHeader) {
 
-        UserDto current = authClient.validateBasicAuth(authHeader);
-        if (current == null) {
-            return ResponseEntity.status(401).body("Unauthorized");
-        }
+        // 1. Extrahera roller från Keycloak-token
+        // Keycloak lägger ofta roller i: realm_access -> roles
+        Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
+        List<String> roles = (List<String>) realmAccess.get("roles");
 
+        // Enkel logik: Hitta första rollen som är relevant (DOCTOR, NURSE, PATIENT)
+        String myRole = roles.stream()
+                .filter(r -> List.of("DOCTOR", "NURSE", "PATIENT").contains(r.toUpperCase()))
+                .findFirst()
+                .orElse("PATIENT"); // Default fallback
 
-        List<UserDto> users = messageService.getAvailableUsers(current);
-
-        return ResponseEntity.ok(users);
+        // 2. Anropa service
+        return ResponseEntity.ok(messageService.getAvailableUsers(myRole, authHeader));
     }
-
 
     @GetMapping("/conversation/{otherUserEmail}")
-    public ResponseEntity<?> conversation(
-            @RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<List<Message>> conversation(
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String otherUserEmail) {
 
-        UserDto user = authClient.validateBasicAuth(authHeader);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Unauthorized");
-        }
-
-        return ResponseEntity.ok(
-                messageService.getConversation(user.email(), otherUserEmail)
-        );
+        String email = jwt.getClaimAsString("email");
+        return ResponseEntity.ok(messageService.getConversation(email, otherUserEmail));
     }
 
-
     @PostMapping("/send")
-    public ResponseEntity<?> sendMessage(
-            @RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<Message> sendMessage(
+            @AuthenticationPrincipal Jwt jwt,
             @RequestBody MessageDTO dto) {
 
-        UserDto user = authClient.validateBasicAuth(authHeader);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Unauthorized");
-        }
+        String email = jwt.getClaimAsString("email");
 
         Message saved = messageService.sendMessage(
-                user.email(),
+                email,
                 dto.receiverEmail,
                 dto.content
         );

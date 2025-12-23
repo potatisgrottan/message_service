@@ -5,6 +5,8 @@ import com.example.message_service.db.MessageRepository;
 import com.example.message_service.ui.DTO.UserDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -12,15 +14,11 @@ import java.util.List;
 public class MessageService {
 
     private final MessageRepository messageRepository;
-    private final AuthService authService;
-    //private final EncounterService encounterService;
+    private final AuthClient authClient;
 
-
-    public MessageService(MessageRepository messageRepository, AuthService authService
-    ) {
+    public MessageService(MessageRepository messageRepository, AuthClient authClient) {
         this.messageRepository = messageRepository;
-        //this.encounterService = encounterService;
-        this.authService = authService;
+        this.authClient = authClient;
     }
 
     public List<Message> getMessagesSentBy(String userEmail) {
@@ -35,33 +33,31 @@ public class MessageService {
         return messageRepository.findConversation(userEmail, otherUserEmail);
     }
 
-    public List<UserDto> getAvailableUsers(UserDto current) {
 
-        if (current.role().equals("DOCTOR") || current.role().equals("NURSE")) {
-            // hämta alla patients
-            return authService.getUsersByRole("PATIENT");
+    public List<UserDto> getAvailableUsers(String myRole, String authHeader) {
+        // Enklast att hantera roller versaler
+        String role = myRole.toUpperCase();
+
+        if (role.contains("DOCTOR") || role.contains("NURSE")) {
+            return authClient.getUsersByRole("PATIENT", authHeader);
         }
 
-        if (current.role().equals("PATIENT")) {
-            // hämta doctors + nurses
-            List<UserDto> doctors = authService.getUsersByRole("DOCTOR");
-            List<UserDto> nurses = authService.getUsersByRole("NURSE");
-
+        if (role.contains("PATIENT")) {
+            List<UserDto> doctors = new ArrayList<>(authClient.getUsersByRole("DOCTOR", authHeader));
+            List<UserDto> nurses = authClient.getUsersByRole("NURSE", authHeader);
             doctors.addAll(nurses);
             return doctors;
         }
 
-        return List.of(); // default tom lista
+        return List.of();
     }
 
-
     public Message sendMessage(String sender, String receiver, String content) {
-        Message message = new Message();
-        message.setSenderEmail(sender);
-        message.setReceiverEmail(receiver);
-        message.setMessage(content);
+        Message message = Message.builder()
+                .senderEmail(sender)
+                .receiverEmail(receiver)
+                .message(content)
+                .build();
         return messageRepository.save(message);
     }
 }
-
-
