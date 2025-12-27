@@ -19,7 +19,7 @@ public class AuthClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("http://auth-service:8081") // Peka på din User Profile Service
+    @Value("http://auth-servicea:8081") // Peka på din User Profile Service
     private String authServiceUrl;
 
     @Autowired
