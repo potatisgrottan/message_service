@@ -9,7 +9,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,14 +19,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults()) // <--- VIKTIGT: Aktiverar CORS i Spring Security
-                .csrf(csrf -> csrf.disable())    // Stänger av CSRF (behövs oftast inte för REST API:er med JWT)
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/**").permitAll() // Om du har publika endpoints
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
-
         return http.build();
     }
 
@@ -35,14 +32,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // HÄR LÄGGER DU TILL DIN FRONTEND URL:
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",                     // För lokal utveckling
-                "https://frontenda.app.cloud.cbh.kth.se"     // <--- DIN FRONTEND I MOLNET
-        ));
+        // WILDCARD TILLÅTER ALLT
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
