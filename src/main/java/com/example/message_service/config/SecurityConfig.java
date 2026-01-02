@@ -1,4 +1,4 @@
-package com.example.journalservice.core.config;
+package com.example.message_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
